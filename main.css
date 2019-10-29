@@ -1,0 +1,249 @@
+body {
+    margin: 0;
+    font-size: 14px;
+    color: #999;
+    background-color: #333;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+h6 {
+    font-size: 11px;
+    font-weight: normal;
+    margin: 2px 0 6px;
+    color: #ccc;
+}
+
+.table {
+    width: 100%;
+}
+
+.menu {
+    border-bottom: 3px solid #555;
+}
+
+.menu ul {
+    margin: 0;
+    padding: 0;
+}
+.menu ul li {
+    list-style: none;
+    display: inline-block;
+}
+.menu ul li a {
+    text-decoration: none;
+    color: #ccc;
+    display: block;
+    padding: 15px 20px;
+    font-size: 14px;
+}
+.menu ul li a:hover {
+    background-color: #444;
+    color: #eee;
+}
+
+.toolbox {
+    width: 80px;
+}
+
+.setting {
+    width: 240px;
+    font-size: 12px;
+}
+
+.canvas .container {
+    background-color: #ccc;
+    text-align: center;
+    padding: 50px 10px 50px;
+    min-height: 500px;
+    position: relative;
+}
+
+.toolbox .container, .setting .container {
+    background-color: #666;
+    text-align: center;
+}
+
+.toolbox, .canvas, .setting {
+    float: left;
+}
+
+.toolbox a img, .canvas a img {
+    width: 30px;
+    height: 30px;
+}
+
+.toolbox a, .canvas a {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    padding: 5px;
+    background-color: #777;
+    margin-bottom: 6px;
+    border-radius: 4px;
+    opacity: 50%;
+}
+
+.toolbox a:hover, .canvas a:hover {
+    opacity: 80%;
+}
+
+.toolbox a.checked, .canvas a.checked {
+    opacity: 100%;
+    background-color: #444;
+}
+
+.canvas a {
+    position: absolute;
+}
+
+.setting-title {
+    padding: 8px;
+    text-align: center;
+    background-color: #444;
+    color: #ccc;
+}
+
+.container {
+    padding: 20px;
+}
+
+#color_panel {
+    margin-top: 3px;
+    width: 40px;
+    height: 40px;
+    border-radius: 2px;
+    background-color: #fff;
+}
+
+.color-slider {
+    color: #ddd;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
+
+.color-slider tr td {
+    height: 24px;
+}
+
+.color-slider input{
+    width: 60%;
+    height: 12px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid #999;
+}
+
+#color_picker {
+    margin-top: 10px;
+    background:linear-gradient(90deg,#ff0000 0%,#ffb600 11%,#fff600 22%,#a5ff00 33%,#00a9ff 44%,#0400ff 55%,#8a00fc 66%,#ff00e9 77%,#ff0059 88%,#ff0000 99%);
+    width: 100%;
+    height: 90px;
+}
+.color-picker-white {
+    height: 45px;
+    background: linear-gradient(0deg,rgba(255,255,255,0),rgba(255,255,255,1));
+}
+.color-picker-black {
+    height: 45px;
+    background: linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,1));
+}
+
+.progress {
+    width: 100%;
+    height: 16px;
+}
+.progress-bar {
+    width: 100%;
+    height: 15px;
+    background-color: #fff;
+}
+
+.setting-table {
+    padding: 20px 10px;
+    font-size:10px;
+    text-align: center;
+}
+
+.setting-table input {
+    width: 34px;
+    border: 1px solid #ddd;
+    border-radius: 2px;
+    text-align: center;
+    height: 14px;
+    font-size: 12px;
+    padding: 2px 0 0;
+}
+
+.layer-head select {
+    width: 90%;
+    color: #003050;
+    border: 1px solid #ccc;
+    font-size: 12px;
+    height: 20px;
+    border-radius: 2px;
+}
+
+.layer-head {
+    height: 30px;
+}
+
+.layer-head input{
+    width: 20px;
+    font-size: 12px;
+    height: 14px;
+    border: 1px solid #ccc;
+    padding-top: 2px;
+    border-radius: 2px;
+}
+
+.layer-item {
+    margin-top: 1px;
+    padding: 6px 0;
+    background-color: #777;
+    color: #ccc;
+    border-radius: 2px;
+}
+
+.layer-item:hover {
+    opacity: 70%;
+}
+
+.layer-item.checked {
+    color: #fff;
+    background-color: #999;
+}
+
+.layer-item img {
+    width: 16px;
+}
+
+.layer-item .pure-u-4-5 {
+    text-align: left;
+}
+
+.layer-edit {
+    text-align: right;
+    margin-top: 10px;
+}
+
+.layer-edit a:hover {
+    opacity: 70%;
+}
+
+.layer-edit img {
+    width: 16px;
+    margin-left: 10px;
+}
+
+.cube-row {
+    height: 15px;
+    margin-bottom: 1px;
+}
+
+.cube {
+    float: left;
+    width: 15px;
+    height: 15px;
+    background-color: #fff;
+    margin-left: 1px;
+}
