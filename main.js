@@ -127,7 +127,7 @@ ColorPicker.prototype = {
     init: function(){
         var f = this;
         this.handler.on('click', function(e){
-            let perX = event.offsetX / event.currentTarget.clientWidth * 100;
+            let perX = e.offsetX / e.currentTarget.clientWidth * 100;
             if (perX > 0 && perX < 100) {
                 let i = 0, j = -1;
                 for (; i < perX; i += f.step, j++);
