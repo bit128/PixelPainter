@@ -128,11 +128,13 @@ ColorPicker.prototype = {
         var f = this;
         this.handler.on('click', function(e){
             let perX = e.offsetX / e.currentTarget.clientWidth * 100;
+            let perY = e.offsetY / e.currentTarget.clientHeight * 100;
             if (perX > 0 && perX < 100) {
                 let i = 0, j = -1;
                 for (; i < perX; i += f.step, j++);
                 let s = parseInt(j+''+j);
                 let offsetX = (perX - s) / f.step;
+
                 let baseColor = f.colors[j];
                 let offsetColor = f.colors[j+1];
                 let changeColor = [0, 0, 0];
@@ -140,6 +142,7 @@ ColorPicker.prototype = {
                 while (i--) {
                     x = baseColor[i];
                     y = offsetColor[i];
+                    //调整色相
                     if (x < y) {
                         changeColor[i] = parseInt((y - x) * offsetX + x);
                     } else if (x > y) {
@@ -149,6 +152,29 @@ ColorPicker.prototype = {
                     }
                     if (changeColor[i] < 0) {
                         changeColor[i] = 0;
+                    }
+                    //调整明度
+                    x = changeColor[i];
+                    let zColor = [255, 255, 255];
+                    let offsetY = 0;
+                    if (perY > 50) {
+                        offsetY = (perY - 50) * 2 / 100;
+                        zColor = [0, 0, 0];
+                    } else if (perY < 50) {
+                        offsetY = (100 - perY * 2) / 100;
+                    }
+                    z = zColor[i];
+                    if (x < z) {
+                        changeColor[i] = parseInt((z - x) * offsetY + x);
+                    } else if (x > z) {
+                        changeColor[i] = parseInt(x - (x - z) * offsetY);
+                    } else {
+                        changeColor[i] = z;
+                    }
+                    if (changeColor[i] < 0) {
+                        changeColor[i] = 0;
+                    } else if (changeColor[i] > 255) {
+                        changeColor[i] = 255;
                     }
                 }
                 f.colorMaker.setColor(changeColor[0], changeColor[1], changeColor[2]);
