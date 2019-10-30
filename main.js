@@ -1,6 +1,7 @@
 var Painter = function(handler) {
     this.handler = handler;
     this.showGrid = true;
+    this.scale = 30;
     this.canvas = [];
     this.data = null;
 };
@@ -41,8 +42,8 @@ Painter.prototype = {
     render: function(){
         this.mergeLayer();
         if (this.canvas.length > 1) {
-            let rowStyle = 'height:' + this.data.scale + 'px;' + (this.showGrid && 'margin-bottom:1px');
-            let cubeStyle = 'width:' + this.data.scale + 'px;height:' + this.data.scale + 'px;'
+            let rowStyle = 'height:' + this.scale + 'px;' + (this.showGrid && 'margin-bottom:1px');
+            let cubeStyle = 'width:' + this.scale + 'px;height:' + this.scale + 'px;'
                 + (this.showGrid && 'margin-left:1px');
             let html = '';
             let i = 0;

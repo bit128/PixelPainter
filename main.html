@@ -207,7 +207,7 @@ $(document).ready(function(){
         return false;
     });
     /*绘图主程序*/
-    const file = '{"cuteType":1,"width":3,"height":4,"scale":30,"layers":[{"name":"绘图层","display":true,"opacity":1,"mode":1,"cubes":[0,0,0,[255,109,28],1,1,0,[255,228,28],0,0,0,0]},{"name":"背景层","display":true,"opacity":1,"mode":1,"cubes":[[255,255,255],1,1,1,1,1,1,1,1,1,1,1]}]}';
+    const file = '{"cuteType":1,"width":3,"height":4,"layers":[{"name":"绘图层","display":true,"opacity":1,"mode":1,"cubes":[0,0,0,[255,109,28],1,1,0,[255,228,28],0,0,0,0]},{"name":"背景层","display":true,"opacity":1,"mode":1,"cubes":[[255,255,255],1,1,1,1,1,1,1,1,1,1,1]}]}';
     const painter = new Painter($('#cube_group'));
     painter.load(file);
     painter.render();
