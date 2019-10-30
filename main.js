@@ -1,5 +1,6 @@
 var Painter = function(handler) {
     this.handler = handler;
+    this.hasChange = false;
     this.showGrid = true;
     this.scale = 30;
     this.canvas = [];
@@ -12,7 +13,13 @@ Painter.prototype = {
             this.data = JSON.parse(file);
         }
     },
-    newFile: function(fileName, cuteType, width, height, bgColor){},
+    newFile: function(fileName, cuteType, width, height, bgColor){
+        if (! this.hasChange) {
+            //
+        } else {
+            alert('请先保存您的文件');
+        }
+    },
     mergeLayer: function() {
         if (this.data != null) {
             let i = this.data.layers.length;
