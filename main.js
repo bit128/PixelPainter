@@ -34,7 +34,6 @@ Painter.prototype = {
                     }
                 }
             }
-            console.log(this.canvas);
         } else {
             console.error('图层数据缺失');
         }
@@ -173,56 +172,42 @@ ColorPicker.prototype = {
             if (perX > 0 && perX < 100) {
                 let i = 0, j = -1;
                 for (; i < perX; i += f.step, j++);
+                let startColors = f.colors[j];
+                let endColors = f.colors[j<9 ? j+1 : 1];
+                let grayColors = [255, 255, 255];
+                //计算色相偏移
                 let s = parseInt(j+''+j);
                 let offsetX = (perX - s) / f.step;
-
-                let baseColor = f.colors[j];
-                let offsetColor = f.colors[j+1];
-                let changeColor = [0, 0, 0];
-                i = 3;
-                while (i--) {
-                    x = baseColor[i];
-                    y = offsetColor[i];
-                    //调整色相
-                    if (x < y) {
-                        changeColor[i] = parseInt((y - x) * offsetX + x);
-                    } else if (x > y) {
-                        changeColor[i] = parseInt(x - (x - y) * offsetX);
-                    } else {
-                        changeColor[i] = x;
-                    }
-                    if (changeColor[i] < 0) {
-                        changeColor[i] = 0;
-                    }
-                    //调整明度
-                    x = changeColor[i];
-                    let zColor = [255, 255, 255];
-                    let offsetY = 0;
-                    if (perY > 50) {
-                        offsetY = (perY - 50) * 2 / 100;
-                        zColor = [0, 0, 0];
-                    } else if (perY < 50) {
-                        offsetY = (100 - perY * 2) / 100;
-                    }
-                    z = zColor[i];
-                    if (x < z) {
-                        changeColor[i] = parseInt((z - x) * offsetY + x);
-                    } else if (x > z) {
-                        changeColor[i] = parseInt(x - (x - z) * offsetY);
-                    } else {
-                        changeColor[i] = z;
-                    }
-                    if (changeColor[i] < 0) {
-                        changeColor[i] = 0;
-                    } else if (changeColor[i] > 255) {
-                        changeColor[i] = 255;
-                    }
+                //计算灰度偏移
+                let offsetY = 0;
+                if (perY > 50) {
+                    offsetY = (perY - 50) * 2 / 100;
+                    grayColors = [0, 0, 0];
+                } else if (perY < 50) {
+                    offsetY = (100 - perY * 2) / 100;
                 }
-                f.colorMaker.setColor(changeColor[0], changeColor[1], changeColor[2]);
-            } else {
-                console.log('---->', '选择了纯红色');
-                f.colorMaker.setColor(255, 0, 0);
+                //开始调整
+                i = 3;
+                let results = [0, 0, 0];
+                while (i--) {
+                    //调整色相
+                    results[i] = f.changeToColor(startColors[i], endColors[i], offsetX);
+                    //调整明度
+                    results[i] = f.changeToColor(results[i], grayColors[i], offsetY);
+                }
+                f.colorMaker.setColor(results[0], results[1], results[2]);
             }
         });
+    },
+    changeToColor: function(fromColor, toColor, offset){
+        let color;
+        if (fromColor < toColor) {
+            color = parseInt((toColor - fromColor) * offset + fromColor);
+        } else if (fromColor > toColor) {
+            color = parseInt(fromColor - (fromColor - toColor) * offset);
+        } else {
+            color = fromColor;
+        }
+        return color;
     }
 };
