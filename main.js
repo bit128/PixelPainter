@@ -1,24 +1,64 @@
 var Painter = function(handler) {
     this.handler = handler;
+    this.showGrid = true;
+    this.canvas = [];
+    this.data = null;
 };
 Painter.prototype = {
     constructor: Painter,
-    init: function(width, height, scale){
-        this.width = width;
-        this.height = height;
-        this.scale = scale;
-        this.render();
+    load: function(file) {
+        if (file.substring(0,1) == '{') {
+            this.data = JSON.parse(file);
+        }
+    },
+    newFile: function(fileName, cuteType, width, height, bgColor){},
+    mergeLayer: function() {
+        if (this.data != null) {
+            let i = this.data.layers.length;
+            while (--i >= 0) {
+                let onColor = 0;
+                if (this.data.layers[i].display) {
+                    for (let j in this.data.layers[i].cubes) {
+                        let cube = this.data.layers[i].cubes[j];
+                        if (cube != 0) {
+                            if (cube == 1) {
+                                this.canvas[j] = onColor;
+                            } else {
+                                this.canvas[j] = cube;
+                                onColor = cube;
+                            }
+                        } else {
+                            onColor = 0;
+                        }
+                    }
+                }
+            }
+            console.log(this.canvas);
+        } else {
+            console.error('图层数据缺失');
+        }
     },
     render: function(){
-        let html = '';
-        for (let row=0; row<this.height; row++) {
-            html += '<div class="cube-row">';
-            for (let col=0; col<this.width; col++) {
-                html += '<div class="cube"></div>';
+        this.mergeLayer();
+        if (this.canvas.length > 1) {
+            let rowStyle = 'height:' + this.data.scale + 'px;' + (this.showGrid && 'margin-bottom:1px');
+            let cubeStyle = 'width:' + this.data.scale + 'px;height:' + this.data.scale + 'px;'
+                + (this.showGrid && 'margin-left:1px');
+            let html = '';
+            let i = 0;
+            for (let row=0; row<this.data.height; row++) {
+                html += '<div style="'+rowStyle+'">';
+                for (let col=0; col<this.data.width; col++) {
+                    let color = ';background:rgb('+this.canvas[i][0]+','+this.canvas[i][1]+','+this.canvas[i][2]+')'
+                    html += '<div class="cube" style="'+cubeStyle+color+'"></div>';
+                    ++i;
+                }
+                html += '</div>';
             }
-            html += '<div style="clear:both;"></div></div>';
+            this.handler.html(html);
+        } else {
+            console.error('画布数据缺失');
         }
-        this.handler.html(html);
     }
 };
 

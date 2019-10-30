@@ -1,0 +1,22 @@
+{
+  "cuteType":1,
+  "width":3,
+  "height":4,
+  "scale":30,
+  "layers":[
+    {
+      "name":"绘图层",
+      "display":true,
+      "opacity":1,
+      "mode":1,
+      "cubes":[0,0,0,[255,0,0],1,1,0,0,0,0,0,0]
+    },
+    {
+      "name":"背景层",
+      "display":true,
+      "opacity":1,
+      "mode":1,
+      "cubes":[[255,255,255],1,1,1,1,1,1,1,1,1,1,1]
+    }
+  ]
+}

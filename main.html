@@ -14,19 +14,50 @@
     <div class="menu">
         <ul>
             <li><a href="javascript:;">Pixel Painter</a></li>
-            <li><a href="javascript:;">文件</a></li>
-            <li><a href="javascript:;">编辑</a></li>
-            <li><a href="javascript:;">图像</a></li>
-            <li><a href="javascript:;">窗口</a></li>
-            <li><a href="javascript:;">帮助</a></li>
+            <li>
+                <a href="javascript:;">文件</a>
+                <ul>
+                    <li><a href="javascript:;">新建</a></li>
+                    <li class="line"><a href="javascript:;">打开</a></li>
+                    <li><a href="javascript:;">保存</a></li>
+                    <li><a href="javascript:;">导出</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="javascript:;">编辑</a>
+                <ul>
+                    <li><a href="javascript:;">重做</a></li>
+                    <li class="line"><a href="javascript:;">撤销</a></li>
+                    <li><a href="javascript:;">剪切</a></li>
+                    <li><a href="javascript:;">复制</a></li>
+                    <li><a href="javascript:;">粘贴</a></li>
+                    <li><a href="javascript:;">清除</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="javascript:;">图像</a>
+                <ul>
+                    <li><a href="javascript:;">图像设置</a></li>
+                    <li class="line"><a href="javascript:;">画布设置</a></li>
+                    <li><a href="javascript:;">灰度</a></li>
+                    <li><a href="javascript:;">反相</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="javascript:;">帮助</a>
+                <ul>
+                    <li><a href="javascript:;">关于 Pixel Painter</a></li>
+                </ul>
+            </li>
         </ul>
     </div>
     <div class="wrap">
         <div class="toolbox">
             <div class="container">
-                <a href="javascript:;" title="选区" class="checked"><img src="images/ic-select.png"></a>
-                <a href="javascript:;" title="画笔"><img src="images/ic-brush.png"></a>
+                <a href="javascript:;" title="画笔"><img src="images/ic-pen.png"></a>
                 <a href="javascript:;" title="清除"><img src="images/ic-eraser.png"></a>
+                <a href="javascript:;" title="移动"><img src="images/ic-move.png"></a>
+                <a href="javascript:;" title="选区"><img src="images/ic-area.png"></a>
                 <a href="javascript:;" title="魔棒"><img src="images/ic-magic.png"></a>
                 <a href="javascript:;" title="拾色"><img src="images/ic-pick.png"></a>
                 <a href="javascript:;" title="填充"><img src="images/ic-fill.png"></a>
@@ -37,9 +68,13 @@
         <div class="canvas">
             <div class="container">
                 <div id="cube_group" style="display: inline-block;"></div>
-                <a href="javascript:;" class="checked" title="隐藏网格" style="right:20px;top:20px;"><img src="images/ic-net.png" /></a>
-                <a href="javascript:;" title="放大" style="right:20px;top:112px;"><img src="images/ic-z-out.png" /></a>
-                <a href="javascript:;" title="缩小" style="right:20px;top:158px;"><img src="images/ic-z-in.png" /></a>
+                <a href="javascript:;" class="checked" title="隐藏网格" style="left:20px;top:20px;"><img src="images/ic-net.png" /></a>
+                <a href="javascript:;" title="放大" style="left:20px;top:112px;"><img src="images/ic-z-out.png" /></a>
+                <a href="javascript:;" title="缩小" style="left:20px;top:158px;"><img src="images/ic-z-in.png" /></a>
+
+                <a href="javascript:;" class="checked" title="拾色器" style="right:20px;top:20px;"><img src="images/ic-plate.png" /></a>
+                <a href="javascript:;" title="历史记录" style="right:20px;top:64px;"><img src="images/ic-history.png" /></a>
+                <a href="javascript:;" class="checked" title="图层" style="right:20px;top:108px;"><img src="images/ic-layer.png" /></a>
             </div>
         </div>
         <div class="setting">
@@ -86,7 +121,7 @@
                 </div>
             </div>
             <div class="setting-title">图层管理</div>
-            <div class="container">
+            <div class="container" id="layer">
                 <div class="pure-g layer-head">
                     <div class="pure-u-1-2">
                         <select>
@@ -114,28 +149,72 @@
                 </div>
                 <div class="layer-edit">
                     <a href="javascript:;" title="新建图层"><img src="images/ic-add.png" /></a>
+                    <a href="javascript:;" title="复制图层"><img src="images/ic-copy.png" /></a>
                     <a href="javascript:;" title="删除图层"><img src="images/ic-delete.png" /></a>
                 </div>
+            </div>
+        </div>
+    </div>
+    <div id="new_file_modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">新建文件</div>
+            <div class="modal-body">
+                <form class="modal-form">
+                    <div class="pure-g">
+                        <div class="pure-u-1-4"><label>文件名称：</label></div>
+                        <div class="pure-u-1-2"><input type="input" class="modal-input" /></div>
+                        <div class="pure-u-1-4"></div>
+                    </div>
+                    <div class="pure-g">
+                        <div class="pure-u-1-4"><label>画布尺寸：</label></div>
+                        <div class="pure-u-1-2">
+                            <input type="input" class="modal-input text-center" style="width:50px;" value="32" /> x
+                            <input type="input" class="modal-input text-center" style="width:50px;" value="32" />
+                        </div>
+                        <div class="pure-u-1-4"></div>
+                    </div>
+                    <div class="pure-g">
+                        <div class="pure-u-1-4"><label>色块类型：</label></div>
+                        <div class="pure-u-1-2">
+                            <label><input type="radio" value="1" checked /> 正方形</label>&nbsp;&nbsp;
+                            <label><input type="radio" value="2" disabled /> 菱形</label>&nbsp;&nbsp;
+                            <label><input type="radio" value="3" disabled /> 六边形</label>
+                        </div>
+                        <div class="pure-u-1-4"></div>
+                    </div> 
+                    <div class="pure-g">
+                        <div class="pure-u-1-4"><label>背景颜色：</label></div>
+                        <div class="pure-u-1-2">
+                            <input type="input" class="modal-input text-center" style="width:68px;" value="#FFFFFF" />
+                        </div>
+                        <div class="pure-u-1-4"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="pure-button btn-info">确定</button>
+                <button type="button" class="pure-button">取消</button>
             </div>
         </div>
     </div>
 </body>
 <script type="text/javascript">
 $(document).ready(function(){
+    /*页面窗口*/
     let cavansWdith = $('body').width() - $('.toolbox').width() - $('.setting').width();
     $('.canvas').width(cavansWdith);
     $('body').on('dragstart', function(){
         return false;
     });
-    /*
-    $('.color-picker').on('click', function(e){
-        console.log('-->', e.offsetX, ' - ', e.offsetY);
-    });*/
+    /*绘图主程序*/
+    const file = '{"cuteType":1,"width":3,"height":4,"scale":30,"layers":[{"name":"绘图层","display":true,"opacity":1,"mode":1,"cubes":[0,0,0,[255,109,28],1,1,0,[255,228,28],0,0,0,0]},{"name":"背景层","display":true,"opacity":1,"mode":1,"cubes":[[255,255,255],1,1,1,1,1,1,1,1,1,1,1]}]}';
     const painter = new Painter($('#cube_group'));
-    //painter.init(32, 32, 1.0);
+    painter.load(file);
+    painter.render();
+    /*调色器*/
     const colorMaker = new ColorMaker($('#color_maker'), $('#color_panel'));
     colorMaker.setColor(250, 68, 0);
-
+    /*拾色器*/
     const colorPicker = new ColorPicker($('#color_picker'), colorMaker);
 });
 </script>
