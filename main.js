@@ -24,7 +24,7 @@ Painter.prototype = {
                 layers: []
             };
             if (! Array.isArray(bgColor)) {
-                bgColor = this.hexToDigit(bgColor);
+                bgColor = ColorPanel.prototype.hexToDigit(bgColor);
             }
             this.newLayer('背景层', bgColor);
             this.newLayer('绘图层', 0);
@@ -52,19 +52,6 @@ Painter.prototype = {
             layer.cubes[i] = nextColor;
         }
         this.data.layers.unshift(layer);
-    },
-    hexToDigit: function(hex) {
-        if (hex.substring(0,1) == '#') {
-            hex = hex.substring(1, hex.length);
-        }
-        if (/^[A-Fa-f0-9]{6}$/.test(hex)) {
-            let colors = [];
-            for (let i=0,j=0; i<6; i+=2,j++) {
-                colors[j] = parseInt(parseInt(hex.substring(i, i+2), 16).toString(10));
-            }
-            return colors;
-        }
-        return hex;
     },
     mergeLayer: function() {
         if (this.data != null) {
@@ -115,43 +102,45 @@ Painter.prototype = {
     }
 };
 
-var ColorMaker = function(handler, panel) {
-    this.handler = handler;
-    this.panel = panel;
+var ColorPanel = function(maker, picker) {
+    this.maker = maker;
+    this.picker = picker;
     this.color = [0, 0, 0];
     this.defaultColor = ['red', 'green', 'blue'];
     this.currentIndex = -1;
     this.clickDown = false;
+    this.step = 11;
+    this.colors = [[255,0,0],[255,182,0],[255,246,0],[165,255,0],[0,169,255],[4,0,255],[138,0,252],[255,0,233],[255,0,59],[255,0,0]];
     this.init();
 };
-ColorMaker.prototype = {
-    constructor: ColorMaker,
+ColorPanel.prototype = {
+    constructor: ColorPanel,
     init: function() {
-        var f = this;
-        this.handler.on('mousedown', '.progress-bar', function(e){
+        let f = this;
+        this.maker.on('mousedown', '.progress-bar', function(e){
             f.clickDown = true;
-            f.currentIndex = f.handler.find('.progress-bar').index($(this));
+            f.currentIndex = f.maker.find('.progress-bar').index($(this));
             f.setPosition(e);
         });
-        this.handler.on('mousemove', '.progress-bar', function(e){
+        this.maker.on('mousemove', '.progress-bar', function(e){
             if (f.clickDown) {
                 f.setPosition(e);
             }
         });
-        this.handler.on('mouseup', '.progress-bar', function(){
+        this.maker.on('mouseup', '.progress-bar', function(){
             if (f.clickDown) {
                 f.clickDown = false;
             }
         });
-        this.handler.on('mouseout', '.progress-bar', function(){
+        this.maker.on('mouseout', '.progress-bar', function(){
             if (f.clickDown) {
                 f.clickDown = false;
             }
         });
-        this.handler.on('focus', 'input', function(){
+        this.maker.on('focus', 'input', function(){
             let input = $(this);
             let val = input.val();
-            let index = f.handler.find('input').index(input);
+            let index = f.maker.find('input').index(input);
             input.one('blur', function(){
                 let nv = $(this).val();
                 if (/^\d+$/.test(nv) && nv > -1 && nv < 256) {
@@ -167,59 +156,12 @@ ColorMaker.prototype = {
                 f.setColor();
             });
         });
-        this.handler.on('keydown', 'input', function(e){
+        this.maker.on('keydown', 'input', function(e){
             if (e.keyCode == 13) {
                 $(this).blur();
             }
         });
-    },
-    setPosition: function(event) {
-        let per = event.offsetX / event.currentTarget.clientWidth;
-        this.color[this.currentIndex] = parseInt(per * 255);
-        this.setColor();
-    },
-    setColor: function(R, G, B){
-        if (R != undefined) {
-            this.color[0] = R;
-        }
-        if (G != undefined) {
-            this.color[1] = G;
-        }
-        if (B != undefined) {
-            this.color[2] = B;
-        }
-        let f = this;
-        let i = 0;
-        this.handler.find('input').each(function(){
-            $(this).val(f.color[i++]);
-        });
-        i = 0;
-        this.handler.find('.progress-bar').each(function(){
-            let per = f.color[i] / 255;
-            let bg = 'background: linear-gradient(to right, '+f.defaultColor[i]
-            +' '+per*100+'%,white '+per*100+'%);';
-            $(this).attr('style', bg);
-            i++;
-        });
-        this.panel.attr('style', 'background: '+this.getColor());
-    },
-    getColor: function(){
-        return 'rgb('+this.color[0]+','+this.color[1]+','+this.color[2]+')';
-    }
-};
-
-var ColorPicker = function(handler, colorMaker){
-    this.handler = handler;
-    this.colorMaker = colorMaker;
-    this.step = 11;
-    this.colors = [[255,0,0],[255,182,0],[255,246,0],[165,255,0],[0,169,255],[4,0,255],[138,0,252],[255,0,233],[255,0,59],[255,0,0]];
-    this.init();
-};
-ColorPicker.prototype = {
-    constructor: ColorPicker,
-    init: function(){
-        var f = this;
-        this.handler.on('click', function(e){
+        this.picker.on('click', function(e){
             let perX = e.offsetX / e.currentTarget.clientWidth * 100;
             let perY = e.offsetY / e.currentTarget.clientHeight * 100;
             if (perX > 0 && perX < 100) {
@@ -248,9 +190,48 @@ ColorPicker.prototype = {
                     //调整明度
                     results[i] = f.changeToColor(results[i], grayColors[i], offsetY);
                 }
-                f.colorMaker.setColor(results[0], results[1], results[2]);
+                f.setColor(results);
             }
         });
+    },
+    setPosition: function(event) {
+        let per = event.offsetX / event.currentTarget.clientWidth;
+        this.color[this.currentIndex] = parseInt(per * 255);
+        this.setColor();
+    },
+    setColor: function(color){
+        if (Array.isArray(color)) {
+            this.color = color;
+        } else if (color) {
+            this.color = this.hexToDigit(color);
+        }
+        let f = this;
+        let i = 0;
+        this.maker.find('input').each(function(){
+            $(this).val(f.color[i++]);
+        });
+        i = 0;
+        this.maker.find('.progress-bar').each(function(){
+            let per = f.color[i] / 255;
+            let bg = 'background: linear-gradient(to right, '+f.defaultColor[i]
+            +' '+per*100+'%,white '+per*100+'%);';
+            $(this).attr('style', bg);
+            i++;
+        });
+        $('.color-panel').attr('style', 'background: '+this.getColor());
+    },
+    hexToDigit: function(hex) {
+        if (hex.substring(0,1) == '#') {
+            hex = hex.substring(1, hex.length);
+        }
+        if (/^[A-Fa-f0-9]{6}$/.test(hex)) {
+            let colors = [];
+            for (let i=0,j=0; i<6; i+=2,j++) {
+                colors[j] = parseInt(parseInt(hex.substring(i, i+2), 16).toString(10));
+            }
+            return colors;
+        }
+        return hex;
     },
     changeToColor: function(fromColor, toColor, offset){
         let color;
@@ -262,5 +243,8 @@ ColorPicker.prototype = {
             color = fromColor;
         }
         return color;
+    },
+    getColor: function(){
+        return 'rgb('+this.color[0]+','+this.color[1]+','+this.color[2]+')';
     }
 };
