@@ -304,22 +304,24 @@ h6 {
     color: #ccc;
     border-radius: 2px;
 }
-
 .layer-item:hover {
     opacity: 70%;
 }
-
 .layer-item.checked {
     color: #fff;
     background-color: #999;
 }
-
 .layer-item img {
     width: 16px;
 }
-
 .layer-item .pure-u-4-5 {
     text-align: left;
+}
+.layer-item input {
+    width: 80%;
+    background: none;
+    border: none;
+    padding-top: 4px;
 }
 
 .layer-edit {
@@ -339,4 +341,56 @@ h6 {
 .cube {
     display: inline-block;
     background-color: #fff;
+}
+.cube:hover {
+    border: 1px solid #00a9ff;
+    box-sizing: border-box;
+}
+.cube-row.grid {
+    margin-bottom: 1px;
+}
+.cube.grid {
+    margin-left: 1px;
+}
+.cube-0 {
+    width: 6px;
+    height: 6px;
+}
+.cube-row-0 {
+    height: 6px;
+}
+.cube-1 {
+    width: 10px;
+    height: 10px;
+}
+.cube-row-1 {
+    height: 10px;
+}
+.cube-2 {
+    width: 15px;
+    height: 15px;
+}
+.cube-row-2 {
+    height: 15px;
+}
+.cube-3 {
+    width: 20px;
+    height: 20px;
+}
+.cube-row-3 {
+    height: 20px;
+}
+.cube-4 {
+    width: 30px;
+    height: 30px;
+}
+.cube-row-4 {
+    height: 30px;
+}
+.cube-5 {
+    width: 40px;
+    height: 40px;
+}
+.cube-row-5 {
+    height: 40px;
 }

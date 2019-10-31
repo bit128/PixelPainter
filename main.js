@@ -2,100 +2,90 @@ var Painter = function(handler) {
     this.handler = handler;
     this.hasChange = false;
     this.showGrid = true;
-    this.scale = 15;
-    this.canvas = [];
-    this.layerCursor = 0;
+    this.scale = 1;
     this.data = null;
+    this.colorManager = null;
+    this.layerManager = null;
+    this.toolMode = '';
+    this.init();
 };
 Painter.prototype = {
     constructor: Painter,
-    load: function(file) {
-        if (file.substring(0,1) == '{') {
-            this.data = JSON.parse(file);
+    init: function() {
+        let f = this;
+        $('.tools').on('click', function(){
+            f.toolMode = $(this).attr('data-val');
+            $('.tools').removeClass('checked');
+            $(this).addClass('checked');
+        });
+        let mouseDown = false;
+        $('body').on('mousedown', function(){
+            mouseDown = true;
+        });
+        $('body').on('mouseup', function(){
+            mouseDown = false;
+            f.render();
+        });
+        this.handler.on('mousedown', '.cube', function(){
+            let index = f.handler.find('.cube').index($(this));
+            f.paint(index);
+        });
+        this.handler.on('mouseover', '.cube', function(){
+            if (mouseDown) {
+                let index = f.handler.find('.cube').index($(this));
+                f.paint(index);
+            }
+        });
+    },
+    paint: function(index) {
+        switch (this.toolMode) {
+            case 'pen':
+                this.layerManager.paintCube(index, this.colorManager.color);
+                break;
+            case 'clear':
+                this.layerManager.paintCube(index, 0);
+                break;
         }
     },
-    newFile: function(fileName, cuteType, width, height, bgColor){
+    newFile: function(fileName, width, height, bgColor){
         if (! this.hasChange) {
             this.data = {
                 fileName: fileName,
-                cuteType: cuteType,
+                cuteType: 1,
                 width: width,
                 height: height,
+                bgColor: bgColor,
                 layers: []
             };
             if (! Array.isArray(bgColor)) {
                 bgColor = ColorPanel.prototype.hexToDigit(bgColor);
             }
-            this.newLayer('背景层', bgColor);
-            this.newLayer('绘图层', 0);
+            let matrix = width * height;
+            this.layerManager.newLayer(matrix, bgColor, '背景层');
+            this.layerManager.newLayer(matrix, 0, '绘图层');
         } else {
             alert('请先保存您的文件');
         }
     },
-    newLayer: function(name, bgColor) {
-        let layer = {
-            name: name,
-            display: true,
-            opacity: 1,
-            mode: 1,
-            cubes: []
-        };
-        let nextColor = 0;
-        if (bgColor != 0) {
-            layer.cubes[0] = bgColor;
-            nextColor = 1;
-        } else {
-            layer.cubes[0] = 0;
-        }
-        let matrix = this.data.width * this.data.height;
-        for (let i=1; i<matrix; i++) {
-            layer.cubes[i] = nextColor;
-        }
-        this.data.layers.unshift(layer);
-    },
-    mergeLayer: function() {
-        if (this.data != null) {
-            let i = this.data.layers.length;
-            while (--i >= 0) {
-                let onColor = 0;
-                if (this.data.layers[i].display) {
-                    for (let j in this.data.layers[i].cubes) {
-                        let cube = this.data.layers[i].cubes[j];
-                        if (cube != 0) {
-                            if (cube == 1) {
-                                this.canvas[j] = onColor;
-                            } else {
-                                this.canvas[j] = cube;
-                                onColor = cube;
-                            }
-                        } else {
-                            onColor = 0;
-                        }
-                    }
-                }
-            }
-        } else {
-            console.error('图层数据缺失');
-        }
-    },
     render: function(){
-        this.mergeLayer();
-        if (this.canvas.length > 1) {
-            let rowStyle = 'height:' + this.scale + 'px;' + (this.showGrid && 'margin-bottom:1px');
-            let cubeStyle = 'width:' + this.scale + 'px;height:' + this.scale + 'px;'
-                + (this.showGrid && 'margin-left:1px');
+        let layer = this.layerManager.getMergeLayer();
+        if (layer.length > 1) {
             let html = '';
             let i = 0;
             for (let row=0; row<this.data.height; row++) {
-                html += '<div style="'+rowStyle+'">';
+                html += '<div class="cube-row cube-row-'+this.scale+'">';
                 for (let col=0; col<this.data.width; col++) {
-                    let color = ';background:rgb('+this.canvas[i][0]+','+this.canvas[i][1]+','+this.canvas[i][2]+')'
-                    html += '<div class="cube" style="'+cubeStyle+color+'"></div>';
+                    let color = 'background:rgb('+layer[i][0]+','+layer[i][1]+','+layer[i][2]+')'
+                    html += '<div class="cube cube-'+this.scale+'" style="'+color+'"></div>';
                     ++i;
                 }
                 html += '</div>';
             }
             this.handler.html(html);
+            if (this.showGrid) {
+                this.handler.find('.cube-row').addClass('grid');
+                this.handler.find('.cube').addClass('grid');
+            }
         } else {
             console.error('画布数据缺失');
         }
@@ -246,5 +236,143 @@ ColorPanel.prototype = {
     },
     getColor: function(){
         return 'rgb('+this.color[0]+','+this.color[1]+','+this.color[2]+')';
+    }
+};
+
+var LayerPanel = function(handler) {
+    this.handler = handler;
+    this.listHandler = $('#layer_list');
+    this.refreshCallback = null;
+    this.matrix = 0;
+    this.currentLayer = 0;
+    this.layers = [];
+    this.init();
+};
+LayerPanel.prototype = {
+    constructor: LayerPanel,
+    init: function(){
+        let f = this;
+        this.handler.on('click', '.layer-edit a', function(){
+            switch (f.handler.find('.layer-edit a').index($(this))) {
+                case 0:
+                    f.newLayer();
+                    break;
+                case 1:
+                    f.copyLayer();
+                    break;
+                case 2:
+                    f.deleteLayer();
+                    break;
+            }
+        });
+        this.listHandler.on('click', '.layer-item', function(){
+            f.currentLayer = f.listHandler.find('.layer-item').removeClass('checked').index($(this));
+            $(this).addClass('checked');
+        });
+        this.listHandler.on('blur', 'input', function(){
+            f.layers[f.listHandler.find('input').index($(this))].name = $(this).val() || '未命名图层';
+        });
+    },
+    paintCube: function(index, color) {
+        if (this.currentLayer != -1) {
+            this.layers[this.currentLayer].cubes[index] = color;
+        }
+    },
+    newLayer: function(length, bgColor, name) {
+        if (length == undefined) {
+            length = this.matrix;
+        } else {
+            this.matrix = length;
+        }
+        if (bgColor == undefined) {
+            bgColor = 0;
+        }
+        if (name == undefined) {
+            name = '未命名图层';
+        }
+        let layer = {
+            name: name,
+            display: true,
+            cubes: []
+        };
+        let nextColor = 0;
+        if (bgColor != 0) {
+            layer.cubes[0] = bgColor;
+            nextColor = 1;
+        } else {
+            layer.cubes[0] = 0;
+        }
+        for (let i=1; i<length; i++) {
+            layer.cubes[i] = nextColor;
+        }
+        this.layers.unshift(layer);
+        this.currentLayer = 0;
+        this.renderList();
+    },
+    copyLayer: function() {
+        if (this.currentLayer != -1) {
+            let layer = this.layers[this.currentLayer];
+            layer.name += '-拷贝';
+            this.layers.unshift(layer);
+            this.currentLayer = 0;
+            this.renderList();
+        } else {
+            alert('请先选择要复制的图层');
+        }
+    },
+    deleteLayer: function() {
+        if (this.currentLayer != -1) {
+            if (confirm('确定要删除选择的图层吗？')) {
+                this.layers.splice(this.currentLayer, 1);
+                this.currentLayer = -1;
+                this.renderList();
+                if (this.refreshCallback != null) {
+                    this.refreshCallback();
+                }
+            }
+        } else {
+            alert('请先选择要复制的图层');
+        }
+    },
+    getMergeLayer: function() {
+        let layer = [];
+        let i = this.layers.length;
+        while (--i >= 0) {
+            let onColor = 0;
+            if (this.layers[i].display) {
+                for (let j in this.layers[i].cubes) {
+                    let cube = this.layers[i].cubes[j];
+                    if (cube != 0) {
+                        if (cube == 1) {
+                            layer[j] = onColor;
+                        } else {
+                            layer[j] = cube;
+                            onColor = cube;
+                        }
+                    } else {
+                        onColor = 0;
+                    }
+                }
+            }
+        }
+        return layer;
+    },
+    renderList: function() {
+        let html = '';
+        for (let item of this.layers) {
+            html += '<div class="pure-g layer-item"><div class="pure-u-1-5">';
+            if (item.isLock) {
+                html += '<img src="images/ic-lock.png" />';
+            } else if (item.display) {
+                html += '<img src="images/ic-eye.png" />';
+            } else {
+                html += '<img src="images/ic-eyec.png" />';
+            }
+            html += '</div><div class="pure-u-4-5"><input type="text" value="'+item.name+'" /></div></div>';
+        }
+        this.listHandler.html(html);
+        if (this.currentLayer != -1) {
+            this.listHandler.find('.layer-item').eq(this.currentLayer).addClass('checked');
+        }
     }
 };

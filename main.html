@@ -36,17 +36,9 @@
                 </ul>
             </li>
             <li>
-                <a href="javascript:;">图像</a>
-                <ul>
-                    <li><a href="javascript:;">图像设置</a></li>
-                    <li class="line"><a href="javascript:;">画布设置</a></li>
-                    <li><a href="javascript:;">灰度</a></li>
-                    <li><a href="javascript:;">反相</a></li>
-                </ul>
-            </li>
-            <li>
                 <a href="javascript:;">帮助</a>
                 <ul>
+                    <li><a href="javascript:;">使用指南</a></li>
                     <li><a href="javascript:;">关于 Pixel Painter</a></li>
                 </ul>
             </li>
@@ -55,15 +47,15 @@
     <div class="wrap">
         <div class="toolbox">
             <div class="container">
-                <a href="javascript:;" title="画笔"><img src="images/ic-pen.png"></a>
-                <a href="javascript:;" title="清除"><img src="images/ic-eraser.png"></a>
-                <a href="javascript:;" title="移动"><img src="images/ic-move.png"></a>
-                <a href="javascript:;" title="选区"><img src="images/ic-area.png"></a>
-                <a href="javascript:;" title="魔棒"><img src="images/ic-magic.png"></a>
-                <a href="javascript:;" title="拾色"><img src="images/ic-pick.png"></a>
-                <a href="javascript:;" title="填充"><img src="images/ic-fill.png"></a>
-                <a href="javascript:;" title="裁剪"><img src="images/ic-cutpic.png"></a>
-                <a href="javascript:;" title="插入图片"><img src="images/ic-album.png"></a>
+                <a href="javascript:;" class="tools" data-val="pen" title="画笔"><img src="images/ic-pen.png"></a>
+                <a href="javascript:;" class="tools" data-val="clear" title="清除"><img src="images/ic-eraser.png"></a>
+                <a href="javascript:;" class="tools" data-val="move" title="移动"><img src="images/ic-move.png"></a>
+                <a href="javascript:;" class="tools" data-val="select" title="选区"><img src="images/ic-area.png"></a>
+                <a href="javascript:;" class="tools" data-val="magic" title="魔棒"><img src="images/ic-magic.png"></a>
+                <a href="javascript:;" class="tools" data-val="pick" title="拾色"><img src="images/ic-pick.png"></a>
+                <a href="javascript:;" class="tools" data-val="fill" title="填充"><img src="images/ic-fill.png"></a>
+                <a href="javascript:;" class="tools" data-val="cut" title="裁剪"><img src="images/ic-cutpic.png"></a>
+                <a href="javascript:;" class="tools" data-val="insert" title="插入图片"><img src="images/ic-album.png"></a>
             </div>
         </div>
         <div class="canvas">
@@ -123,17 +115,18 @@
             </div>
             <div class="setting-title">图层管理</div>
             <div class="container" id="layer">
+                <!--
                 <div class="pure-g layer-head">
                     <div class="pure-u-1-2">
                         <select>
-                            <option>正常</option>
-                            <option>正片叠底</option>
+                            <option value="1">正常</option>
+                            <option value="2">叠加</option>
                         </select>
                     </div>
                     <div class="pure-u-1-2">
                         不透明: <input type="text" value="100"> %
                     </div>
-                </div>
+                </div>-->
                 <div id="layer_list">
                     <div class="pure-g layer-item checked">
                         <div class="pure-u-1-5">
@@ -208,17 +201,20 @@ $(document).ready(function(){
         return false;
     });
     /*绘图主程序*/
-    //const file = '{"cuteType":1,"width":3,"height":4,"layers":[{"name":"绘图层","display":true,"opacity":1,"mode":1,"cubes":[0,0,0,[255,109,28],1,1,0,[255,228,28],0,0,0,0]},{"name":"背景层","display":true,"opacity":1,"mode":1,"cubes":[[255,255,255],1,1,1,1,1,1,1,1,1,1,1]}]}';
     const painter = new Painter($('#cube_group'));
-    painter.newFile('未命名', 1, 32, 20, '#ffffff');
+    /*颜色面板*/
+    painter.colorManager = new ColorPanel($('#color_maker'), $('#color_picker'));
+    /*图层面板*/
+    const layerPanel = new LayerPanel($('#layer'));
+    layerPanel.refreshCallback = function(){
+        painter.render();
+    };
+    painter.layerManager = layerPanel;
+
+    painter.colorManager.setColor('#fa6800');
+    painter.newFile('未命名', 64, 32, '#ffffff');
+    painter.scale = 0;
     painter.render();
-    //painter.load(file);
-    //painter.render();
-    /*调色器*/
-    const colorPanel = new ColorPanel($('#color_maker'), $('#color_picker'));
-    colorPanel.setColor('#fa6800');
-    /*拾色器*/
-    //const colorPicker = new ColorPicker($('#color_picker'), colorMaker);
 });
 </script>
 </html>
