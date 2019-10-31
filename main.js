@@ -2,8 +2,9 @@ var Painter = function(handler) {
     this.handler = handler;
     this.hasChange = false;
     this.showGrid = true;
-    this.scale = 30;
+    this.scale = 15;
     this.canvas = [];
+    this.layerCursor = 0;
     this.data = null;
 };
 Painter.prototype = {
@@ -15,10 +16,55 @@ Painter.prototype = {
     },
     newFile: function(fileName, cuteType, width, height, bgColor){
         if (! this.hasChange) {
-            //
+            this.data = {
+                fileName: fileName,
+                cuteType: cuteType,
+                width: width,
+                height: height,
+                layers: []
+            };
+            if (! Array.isArray(bgColor)) {
+                bgColor = this.hexToDigit(bgColor);
+            }
+            this.newLayer('背景层', bgColor);
+            this.newLayer('绘图层', 0);
         } else {
             alert('请先保存您的文件');
         }
+    },
+    newLayer: function(name, bgColor) {
+        let layer = {
+            name: name,
+            display: true,
+            opacity: 1,
+            mode: 1,
+            cubes: []
+        };
+        let nextColor = 0;
+        if (bgColor != 0) {
+            layer.cubes[0] = bgColor;
+            nextColor = 1;
+        } else {
+            layer.cubes[0] = 0;
+        }
+        let matrix = this.data.width * this.data.height;
+        for (let i=1; i<matrix; i++) {
+            layer.cubes[i] = nextColor;
+        }
+        this.data.layers.unshift(layer);
+    },
+    hexToDigit: function(hex) {
+        if (hex.substring(0,1) == '#') {
+            hex = hex.substring(1, hex.length);
+        }
+        if (/^[A-Fa-f0-9]{6}$/.test(hex)) {
+            let colors = [];
+            for (let i=0,j=0; i<6; i+=2,j++) {
+                colors[j] = parseInt(parseInt(hex.substring(i, i+2), 16).toString(10));
+            }
+            return colors;
+        }
+        return hex;
     },
     mergeLayer: function() {
         if (this.data != null) {
