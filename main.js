@@ -92,6 +92,10 @@ Painter.prototype = {
                 cube.removeAttr('style');
                 this.layerManager.paintCube(index, 0);
                 break;
+            case 'pick':
+                let color = cube.attr('style').replace('background:rgb(', '[').replace(')',']');
+                this.colorManager.setColor(JSON.parse(color));
+                break;
         }
     },
     newFile: function(fileName, width, height, bgColor){
