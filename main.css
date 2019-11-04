@@ -361,6 +361,10 @@ h6 {
     border: 1px solid #00a9ff;
     box-sizing: border-box;
 }
+.cube.checked {
+    border: 1px dotted #31baff;
+    box-sizing: border-box;
+}
 .cube-row.grid {
     margin-bottom: 1px;
 }

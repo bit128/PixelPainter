@@ -27,7 +27,9 @@ Painter.prototype = {
         });
         $('body').on('mouseup', function(){
             mouseDown = false;
-            f.render();
+            if (['select','pick','magic','cut','insert'].indexOf(f.toolMode) == -1) {
+                f.render();
+            }
         });
         this.handler.on('mousedown', '.cube', function(){
             let index = f.handler.find('.cube').index($(this));
@@ -82,6 +84,44 @@ Painter.prototype = {
         $('.tools[data-val="'+tool+'"]').addClass('checked');
         this.toolMode = tool;
     },
+    makeColorArea: function(index, color) {
+        this.colorArea = [index];
+        this.searchColorArea(index, color);
+    },
+    searchColorArea(index, color) {
+        //向左查询
+        if (this.x > 0) {
+            let i = index - 1;
+            if (this.colorArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
+                this.colorArea.push(i);
+                this.searchColorArea(i, color);
+            }
+        }
+        //向上查询
+        if (this.y > 0) {
+            let i = index - this.data.width;
+            if (this.colorArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
+                this.colorArea.push(i);
+                this.searchColorArea(i, color);
+            }
+        }
+        //向右查询
+        if (this.x < this.data.width - 1) {
+            let i = index + 1;
+            if (this.colorArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
+                this.colorArea.push(i);
+                this.searchColorArea(i, color);
+            }
+        }
+        //向下查询
+        if (this.y < this.data.height - 1) {
+            let i = index + this.data.height;
+            if (this.colorArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
+                this.colorArea.push(i);
+                this.searchColorArea(i, color);
+            }
+        }
+    },
     paint: function(index, cube) {
         switch (this.toolMode) {
             case 'pen':
@@ -92,9 +132,20 @@ Painter.prototype = {
                 cube.removeAttr('style');
                 this.layerManager.paintCube(index, 0);
                 break;
+            case 'magic':
+                this.makeColorArea(index, cube.attr('style'));
+                this.handler.find('.cube').removeClass('checked');
+                for (let i of this.colorArea) {
+                    this.handler.find('.cube').eq(i).addClass('checked');
+                }
+                break;
             case 'pick':
                 let color = cube.attr('style').replace('background:rgb(', '[').replace(')',']');
                 this.colorManager.setColor(JSON.parse(color));
+                break;
+            case 'fill':
+                this.makeColorArea(index, cube.attr('style'));
+                this.layerManager.paintCubes(this.colorArea, JSON.parse(JSON.stringify(this.colorManager.color)));
                 break;
         }
     },
@@ -334,6 +385,11 @@ LayerPanel.prototype = {
     paintCube: function(index, color) {
         if (this.currentLayer != -1) {
             this.layers[this.currentLayer].cubes[index] = color;
+        }
+    },
+    paintCubes: function(indexs, color) {
+        for (let i of indexs) {
+            this.layers[this.currentLayer].cubes[i] = color;
         }
     },
     newLayer: function(length, bgColor, name) {
