@@ -196,8 +196,14 @@ h6 {
     background-color: #444;
 }
 
-.canvas a {
+.canvas a, .canvas label {
     position: absolute;
+}
+.canvas label {
+    font-size: 12px;
+    color: #003050;
+    top: 10px;
+    left: 20px;
 }
 
 .setting-title {
@@ -338,9 +344,18 @@ h6 {
     margin-left: 10px;
 }
 
+#cube_group {
+    display: inline-block;
+    box-shadow: 4px 4px 8px #aaa;
+}
+.cube-row {
+    font-size: 0px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}
 .cube {
     display: inline-block;
-    background-color: #fff;
+    background-color: rgba(0, 0, 0, 0);
 }
 .cube:hover {
     border: 1px solid #00a9ff;
@@ -354,7 +369,7 @@ h6 {
 }
 .cube-0 {
     width: 6px;
-    height: 6px;
+    height:6px;
 }
 .cube-row-0 {
     height: 6px;

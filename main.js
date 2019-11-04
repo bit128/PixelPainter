@@ -1,13 +1,16 @@
 var Painter = function(handler) {
     this.handler = handler;
     this.hasChange = false;
-    this.showGrid = true;
+    this.x = 0;
+    this.y = 0;
+    this.showGrid = false;
     this.scale = 1;
     this.data = null;
     this.colorManager = null;
     this.layerManager = null;
     this.toolMode = '';
     this.init();
+    this.windowEvent();
 };
 Painter.prototype = {
     constructor: Painter,
@@ -28,21 +31,65 @@ Painter.prototype = {
         });
         this.handler.on('mousedown', '.cube', function(){
             let index = f.handler.find('.cube').index($(this));
-            f.paint(index);
+            f.paint(index, $(this));
         });
         this.handler.on('mouseover', '.cube', function(){
+            let index = f.handler.find('.cube').index($(this));
             if (mouseDown) {
-                let index = f.handler.find('.cube').index($(this));
-                f.paint(index);
+                f.paint(index, $(this));
+            }
+            f.x = index%f.data.width;
+            f.y = parseInt(index/f.data.height);
+            $('.canvas label').find('span').html('X: '+f.x+' Y: '+f.y);
+        });
+        this.handler.on('mouseout', function(){
+            f.x = 0;
+            f.y = 0;
+            $('.canvas label').find('span').html('X: '+f.x+' Y: '+f.y);
+        });
+    },
+    windowEvent: function() {
+        let f = this;
+        $('.canvas').on('click', 'a', function() {
+            switch ($('.canvas').find('a').index($(this))) {
+                case 0:
+                    if ($(this).hasClass('checked')) {
+                        $(this).removeClass('checked');
+                        f.showGrid = false;
+                        f.render();
+                    } else {
+                        $(this).addClass('checked');
+                        f.showGrid = true;
+                        f.render();
+                    }
+                    break;
+                case 1:
+                    if (f.scale < 5) {
+                        f.scale++;
+                        f.render();
+                    }
+                    break;
+                case 2:
+                    if (f.scale > 0) {
+                        f.scale--;
+                        f.render();
+                    }
             }
         });
     },
-    paint: function(index) {
+    setTool: function(tool) {
+        $('.tools').removeClass('checked');
+        $('.tools[data-val="'+tool+'"]').addClass('checked');
+        this.toolMode = tool;
+    },
+    paint: function(index, cube) {
         switch (this.toolMode) {
             case 'pen':
-                this.layerManager.paintCube(index, this.colorManager.color);
+                cube.attr('style', 'background:'+this.colorManager.getColor());
+                this.layerManager.paintCube(index, JSON.parse(JSON.stringify(this.colorManager.color)));
                 break;
             case 'clear':
+                cube.removeAttr('style');
                 this.layerManager.paintCube(index, 0);
                 break;
         }
@@ -75,8 +122,11 @@ Painter.prototype = {
             for (let row=0; row<this.data.height; row++) {
                 html += '<div class="cube-row cube-row-'+this.scale+'">';
                 for (let col=0; col<this.data.width; col++) {
-                    let color = 'background:rgb('+layer[i][0]+','+layer[i][1]+','+layer[i][2]+')'
-                    html += '<div class="cube cube-'+this.scale+'" style="'+color+'"></div>';
+                    let color = 'rgba(0,0,0,0)';
+                    if (layer[i] != 0) {
+                        color = 'rgb('+layer[i][0]+','+layer[i][1]+','+layer[i][2]+')';
+                    }
+                    html += '<div class="cube cube-'+this.scale+'" style="background:'+color+'"></div>';
                     ++i;
                 }
                 html += '</div>';
@@ -86,6 +136,10 @@ Painter.prototype = {
                 this.handler.find('.cube-row').addClass('grid');
                 this.handler.find('.cube').addClass('grid');
             }
+            let cavansWdith = $('body').width() - $('.toolbox').width() - $('.setting').width();
+            $('.canvas').width(cavansWdith);
+            $('.canvas label').html('width: '+this.data.width+'&nbsp; height: '+this.data.height
+                +'&nbsp; scale: '+this.scale+'&nbsp;&nbsp;&nbsp;&nbsp;<span></span>');
         } else {
             console.error('画布数据缺失');
         }
@@ -295,15 +349,8 @@ LayerPanel.prototype = {
             display: true,
             cubes: []
         };
-        let nextColor = 0;
-        if (bgColor != 0) {
-            layer.cubes[0] = bgColor;
-            nextColor = 1;
-        } else {
-            layer.cubes[0] = 0;
-        }
-        for (let i=1; i<length; i++) {
-            layer.cubes[i] = nextColor;
+        for (let i=0; i<length; i++) {
+            layer.cubes[i] = bgColor;
         }
         this.layers.unshift(layer);
         this.currentLayer = 0;
@@ -311,7 +358,7 @@ LayerPanel.prototype = {
     },
     copyLayer: function() {
         if (this.currentLayer != -1) {
-            let layer = this.layers[this.currentLayer];
+            let layer = JSON.parse(JSON.stringify(this.layers))[this.currentLayer]; 
             layer.name += '-拷贝';
             this.layers.unshift(layer);
             this.currentLayer = 0;
@@ -331,17 +378,23 @@ LayerPanel.prototype = {
                 }
             }
         } else {
-            alert('请先选择要复制的图层');
+            alert('请先选择要删除的图层');
         }
     },
     getMergeLayer: function() {
         let layer = [];
+        for (let m=0; m<this.matrix; m++) {
+            layer[m] = 0;
+        }
         let i = this.layers.length;
         while (--i >= 0) {
-            let onColor = 0;
             if (this.layers[i].display) {
                 for (let j in this.layers[i].cubes) {
                     let cube = this.layers[i].cubes[j];
+                    if (cube != 0) {
+                        layer[j] = cube;
+                    }
+                    /*
                     if (cube != 0) {
                         if (cube == 1) {
                             layer[j] = onColor;
@@ -351,7 +404,7 @@ LayerPanel.prototype = {
                         }
                     } else {
                         onColor = 0;
-                    }
+                    }*/
                 }
             }
         }
