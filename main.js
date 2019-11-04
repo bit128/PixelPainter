@@ -16,26 +16,29 @@ Painter.prototype = {
     constructor: Painter,
     init: function() {
         let f = this;
-        $('.tools').on('click', function(){
+        $('.tools').on('click', function(e){
             f.toolMode = $(this).attr('data-val');
             $('.tools').removeClass('checked');
             $(this).addClass('checked');
+            e.stopPropagation();
         });
         let mouseDown = false;
+        let areaPosX = 0;
+        let areaPosY = 0;
         $('body').on('mousedown', function(e){
             mouseDown = true;
             if (f.toolMode == 'select') {
-                f.areaPosX = e.clientX;
-                f.areaPosY = e.clientY;
-                let pos = 'left:'+f.areaPosX+'px;top:'+f.areaPosY+'px;width:1px;height:1px;';
+                areaPosX = e.clientX+1;
+                areaPosY = e.clientY+1;
+                let pos = 'left:'+areaPosX+'px;top:'+areaPosY+'px;';
                 $('.canvas').append('<div class="area" style="'+pos+'"></div>');
             }
         });
         $('body').on('mousemove', function(e){
             if (mouseDown && f.toolMode == 'select') {
-                let pos = 'left:'+(f.areaPosX>e.clientX?f.areaPosX-(f.areaPosX-e.clientX):f.areaPosX)
-                    +'px;top:'+(f.areaPosY>e.clientY?f.areaPosY-(f.areaPosY-e.clientY):f.areaPosY)
-                    +'px;width:'+Math.abs(e.clientX-f.areaPosX)+'px;height:'+Math.abs(e.clientY-f.areaPosY)+'px;';
+                let pos = 'left:'+(areaPosX>e.clientX?areaPosX-(areaPosX-e.clientX):areaPosX)
+                    +'px;top:'+(areaPosY>e.clientY?areaPosY-(areaPosY-e.clientY):areaPosY)
+                    +'px;width:'+Math.abs(e.clientX-areaPosX)+'px;height:'+Math.abs(e.clientY-areaPosY)+'px;';
                 $('.canvas').find('.area').attr('style', pos);
             }
         });
