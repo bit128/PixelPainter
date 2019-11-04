@@ -318,13 +318,14 @@ h6 {
     background-color: #999;
 }
 .layer-item img {
-    width: 16px;
+    width: 24px;
+    margin-bottom: -4px;
 }
 .layer-item .pure-u-4-5 {
     text-align: left;
 }
 .layer-item input {
-    width: 80%;
+    width: 60%;
     background: none;
     border: none;
     padding-top: 4px;
@@ -346,7 +347,7 @@ h6 {
 
 #cube_group {
     display: inline-block;
-    box-shadow: 4px 4px 8px #aaa;
+    border: 1px solid #bbb;
 }
 .cube-row {
     font-size: 0px;

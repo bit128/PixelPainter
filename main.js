@@ -27,7 +27,7 @@ Painter.prototype = {
         });
         $('body').on('mouseup', function(){
             mouseDown = false;
-            if (['select','pick','magic','cut','insert'].indexOf(f.toolMode) == -1) {
+            if (['move','select','pick','magic','cut','insert'].indexOf(f.toolMode) == -1) {
                 f.render();
             }
         });
@@ -89,7 +89,6 @@ Painter.prototype = {
         this.searchColorArea(index, color);
     },
     searchColorArea(index, color) {
-        //向左查询
         if (this.x > 0) {
             let i = index - 1;
             if (this.colorArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
@@ -97,7 +96,6 @@ Painter.prototype = {
                 this.searchColorArea(i, color);
             }
         }
-        //向上查询
         if (this.y > 0) {
             let i = index - this.data.width;
             if (this.colorArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
@@ -105,7 +103,6 @@ Painter.prototype = {
                 this.searchColorArea(i, color);
             }
         }
-        //向右查询
         if (this.x < this.data.width - 1) {
             let i = index + 1;
             if (this.colorArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
@@ -113,7 +110,6 @@ Painter.prototype = {
                 this.searchColorArea(i, color);
             }
         }
-        //向下查询
         if (this.y < this.data.height - 1) {
             let i = index + this.data.height;
             if (this.colorArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
@@ -361,7 +357,7 @@ LayerPanel.prototype = {
     constructor: LayerPanel,
     init: function(){
         let f = this;
-        this.handler.on('click', '.layer-edit a', function(){
+        this.handler.on('click', '.layer-edit a', function() {
             switch (f.handler.find('.layer-edit a').index($(this))) {
                 case 0:
                     f.newLayer();
@@ -374,12 +370,24 @@ LayerPanel.prototype = {
                     break;
             }
         });
-        this.listHandler.on('click', '.layer-item', function(){
+        this.listHandler.on('click', '.layer-item', function() {
             f.currentLayer = f.listHandler.find('.layer-item').removeClass('checked').index($(this));
             $(this).addClass('checked');
         });
-        this.listHandler.on('blur', 'input', function(){
+        this.listHandler.on('blur', 'input', function() {
             f.layers[f.listHandler.find('input').index($(this))].name = $(this).val() || '未命名图层';
+        });
+        this.listHandler.on('click', 'img', function() {
+            let src = $(this).attr('src');
+            let index = f.listHandler.find('img').index($(this));
+            if (src.substr(src.length-5, 5) == 'e.png') {
+                $(this).attr('src', 'images/ic-eyec.png');
+                f.layers[index].display = false;
+            } else {
+                $(this).attr('src', 'images/ic-eye.png');
+                f.layers[index].display = true;
+            }
+            f.refreshCallback();
         });
     },
     paintCube: function(index, color) {
