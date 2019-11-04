@@ -150,6 +150,8 @@ h6 {
     padding: 50px 10px 50px;
     min-height: 500px;
     position: relative;
+    -webkit-user-select: none;
+    -moz-user-select: none;
 }
 
 .toolbox .container, .setting .container {
@@ -351,8 +353,6 @@ h6 {
 }
 .cube-row {
     font-size: 0px;
-    -webkit-user-select: none;
-    -moz-user-select: none;
 }
 .cube {
     display: inline-block;
@@ -413,4 +413,9 @@ h6 {
 }
 .cube-row-5 {
     height: 40px;
+}
+
+.area {
+    border: 1px dashed #003050;
+    position: fixed;
 }

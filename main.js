@@ -22,11 +22,28 @@ Painter.prototype = {
             $(this).addClass('checked');
         });
         let mouseDown = false;
-        $('body').on('mousedown', function(){
+        $('body').on('mousedown', function(e){
             mouseDown = true;
+            if (f.toolMode == 'select') {
+                f.areaPosX = e.clientX;
+                f.areaPosY = e.clientY;
+                let pos = 'left:'+f.areaPosX+'px;top:'+f.areaPosY+'px;width:1px;height:1px;';
+                $('.canvas').append('<div class="area" style="'+pos+'"></div>');
+            }
+        });
+        $('body').on('mousemove', function(e){
+            if (mouseDown && f.toolMode == 'select') {
+                let pos = 'left:'+(f.areaPosX>e.clientX?f.areaPosX-(f.areaPosX-e.clientX):f.areaPosX)
+                    +'px;top:'+(f.areaPosY>e.clientY?f.areaPosY-(f.areaPosY-e.clientY):f.areaPosY)
+                    +'px;width:'+Math.abs(e.clientX-f.areaPosX)+'px;height:'+Math.abs(e.clientY-f.areaPosY)+'px;';
+                $('.canvas').find('.area').attr('style', pos);
+            }
         });
         $('body').on('mouseup', function(){
             mouseDown = false;
+            if (f.toolMode == 'select') {
+                $('.canvas').find('.area').remove();
+            }
             if (['move','select','pick','magic','cut','insert'].indexOf(f.toolMode) == -1) {
                 f.render();
             }
@@ -127,6 +144,9 @@ Painter.prototype = {
             case 'clear':
                 cube.removeAttr('style');
                 this.layerManager.paintCube(index, 0);
+                break;
+            case 'select':
+                
                 break;
             case 'magic':
                 this.makeColorArea(index, cube.attr('style'));
