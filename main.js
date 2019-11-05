@@ -25,27 +25,65 @@ Painter.prototype = {
         let mouseDown = false;
         let areaPosX = 0;
         let areaPosY = 0;
-        $('body').on('mousedown', function(e){
+        $('.canvas').on('mousedown', function(e){
             mouseDown = true;
             if (f.toolMode == 'select') {
-                areaPosX = e.clientX+1;
-                areaPosY = e.clientY+1;
-                let pos = 'left:'+areaPosX+'px;top:'+areaPosY+'px;';
-                $('.canvas').append('<div class="area" style="'+pos+'"></div>');
+                areaPosX = e.clientX + 1;
+                areaPosY = e.clientY + 1;
+                let pos = 'left:'+areaPosX+'px;top:'+areaPosY+'px;width:1px;height:1px;';
+                $(this).append('<div class="area" style="'+pos+'"></div>');
+                f.selectArea = [];
+                $(this).find('.cube').removeClass('checked');
             }
         });
-        $('body').on('mousemove', function(e){
+        $('.canvas').on('mousemove', function(e){
             if (mouseDown && f.toolMode == 'select') {
                 let pos = 'left:'+(areaPosX>e.clientX?areaPosX-(areaPosX-e.clientX):areaPosX)
                     +'px;top:'+(areaPosY>e.clientY?areaPosY-(areaPosY-e.clientY):areaPosY)
                     +'px;width:'+Math.abs(e.clientX-areaPosX)+'px;height:'+Math.abs(e.clientY-areaPosY)+'px;';
-                $('.canvas').find('.area').attr('style', pos);
+                $(this).find('.area').attr('style', pos);
             }
         });
-        $('body').on('mouseup', function(){
+        $('.canvas').on('mouseup', function(){
             mouseDown = false;
             if (f.toolMode == 'select') {
-                $('.canvas').find('.area').remove();
+                let area = $(this).find('.area');
+                let al = area.offset().left;
+                let at = area.offset().top;
+                let aw = area.width();
+                let ah = area.height();
+                let i = 0;
+                f.handler.find('.cube').each(function(){
+                    let isMeet = false;
+                    let cl = $(this).offset().left;
+                    let ct = $(this).offset().top;
+                    let cw = $(this).width();
+                    let ch = $(this).height();
+                    if (at < ct && at+ah > ct) {
+                        if (al < cl && al+aw > cl) {
+                            isMeet = true;
+                        } else if (al > cl && al+aw < cl+cw) {
+                            isMeet = true;
+                        } else if (al < cl+cw && al+aw > cl+cw) {
+                            isMeet = true;
+                        }
+                    } else if (at > ct && at < ct+ch) {
+                        if (al < cl && al+aw > cl) {
+                            isMeet = true;
+                        } else if (al > cl && al+aw < cl+cw) {
+                            isMeet = true;
+                        } else if (al < cl+cw && al+aw > cl+cw) {
+                            isMeet = true;
+                        }
+                    }
+                    if (isMeet) {
+                        f.selectArea.push(i);
+                        $(this).addClass('checked');
+                    }
+                    i++;
+                });
+                console.log(f.selectArea);
+                area.remove();
             }
             if (['move','select','pick','magic','cut','insert'].indexOf(f.toolMode) == -1) {
                 f.render();
@@ -148,9 +186,6 @@ Painter.prototype = {
                 cube.removeAttr('style');
                 this.layerManager.paintCube(index, 0);
                 break;
-            case 'select':
-                
-                break;
             case 'magic':
                 this.makeColorArea(index, cube.attr('style'));
                 this.handler.find('.cube').removeClass('checked');
@@ -163,9 +198,17 @@ Painter.prototype = {
                 this.colorManager.setColor(JSON.parse(color));
                 break;
             case 'fill':
-                this.makeColorArea(index, cube.attr('style'));
-                this.layerManager.paintCubes(this.colorArea, JSON.parse(JSON.stringify(this.colorManager.color)));
+                let colorArr = JSON.parse(JSON.stringify(this.colorManager.color));
+                if (this.selectArea.length > 0) {
+                    this.layerManager.paintCubes(this.selectArea, colorArr);
+                } else {
+                    this.makeColorArea(index, cube.attr('style'));
+                    this.layerManager.paintCubes(this.colorArea, colorArr);
+                }
                 break;
+        }
+        if (this.selectArea) {
+            this.selectArea = [];
         }
     },
     newFile: function(fileName, width, height, bgColor){
