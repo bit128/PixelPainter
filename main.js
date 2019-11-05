@@ -20,29 +20,67 @@ Painter.prototype = {
             f.toolMode = $(this).attr('data-val');
             $('.tools').removeClass('checked');
             $(this).addClass('checked');
+            if (f.toolMode == 'select' && f.showGrid) {
+                f.showGrid = false;
+                $('.canvas').find('a:eq(0)').removeClass('checked');
+                f.render();
+            }
         });
         let mouseDown = false;
+        let areaPosX = 0;
+        let areaPosY = 0;
         $('body').on('mousedown', function(e){
             mouseDown = true;
             if (f.toolMode == 'select') {
-                f.areaPosX = e.clientX;
-                f.areaPosY = e.clientY;
-                let pos = 'left:'+f.areaPosX+'px;top:'+f.areaPosY+'px;width:1px;height:1px;';
+                areaPosX = e.clientX + 1;
+                areaPosY = e.clientY + 1;
+                let pos = 'left:'+areaPosX+'px;top:'+areaPosY+'px;width:1px;height:1px;';
                 $('.canvas').append('<div class="area" style="'+pos+'"></div>');
             }
         });
         $('body').on('mousemove', function(e){
             if (mouseDown && f.toolMode == 'select') {
-                let pos = 'left:'+(f.areaPosX>e.clientX?f.areaPosX-(f.areaPosX-e.clientX):f.areaPosX)
-                    +'px;top:'+(f.areaPosY>e.clientY?f.areaPosY-(f.areaPosY-e.clientY):f.areaPosY)
-                    +'px;width:'+Math.abs(e.clientX-f.areaPosX)+'px;height:'+Math.abs(e.clientY-f.areaPosY)+'px;';
+                let pos = 'left:'+(areaPosX>e.clientX?areaPosX-(areaPosX-e.clientX):areaPosX)
+                    +'px;top:'+(areaPosY>e.clientY?areaPosY-(areaPosY-e.clientY):areaPosY)
+                    +'px;width:'+Math.abs(e.clientX-areaPosX)+'px;height:'+Math.abs(e.clientY-areaPosY)+'px;';
                 $('.canvas').find('.area').attr('style', pos);
             }
         });
         $('body').on('mouseup', function(){
             mouseDown = false;
             if (f.toolMode == 'select') {
-                $('.canvas').find('.area').remove();
+                let area = $('.canvas').find('.area');
+                let at = area.offset().top;
+                let al = area.offset().left;
+                let ct = f.handler.offset().top;
+                let cl = f.handler.offset().left;
+                //选择区域x,y,w,h
+                let selectArea;
+                //计算是否相交
+                if (at < ct && at+area.height() > ct) {
+                    if (al < cl && al+area.width() > cl) {
+                        selectArea = [0, 0, al+area.width()-cl, at+area.height()-ct];
+                        console.log('---->', '左上角相交:', selectArea);
+                    } else if (al > cl && al+area.width()<cl+f.handler.width()) {
+                        selectArea = [al-cl, 0, area.width(), at+area.height()-ct];
+                        console.log('---->', '顶部相交:', selectArea);
+                    } else if (al < cl+f.handler.width() && al+area.width()>cl+f.handler.width()) {
+                        selectArea = [al-cl, 0, cl+f.handler.width()-al, at+area.height()-ct];
+                        console.log('---->', '右上角相交:', selectArea);
+                    }
+                } else if (at > ct && at < ct+f.handler.height()) {
+                    if (al < cl && al+area.width()>cl) {
+                        selectArea = [0, at-ct, al+area.width()-cl, at+area.height()>ct+f.handler.height()?ct+f.handler.height()-at:area.height()];
+                        console.log('---->', '左边相交:', selectArea);
+                    } else if (al > cl && al+area.width()<cl+f.handler.width()) {
+                        selectArea = [al-cl, at-ct, al+area.width()>cl+f.handler.width()?cl+f.handler.width()-al:area.width(), at+area.height()>ct+f.handler.height()?ct+f.handler.height()-at:area.height()];
+                        console.log('---->', '内相交:', selectArea);
+                    } else if (al < cl+f.handler.width() && al+area.width()>cl+f.handler.width()) {
+                        selectArea = [al-cl, at-ct, cl+f.handler.width()-al, at+area.height()>ct+f.handler.height()?ct+f.handler.height()-at:area.height()];
+                        console.log('---->', '右边相交:', selectArea);
+                    }
+                }
+                area.remove();
             }
             if (['move','select','pick','magic','cut','insert'].indexOf(f.toolMode) == -1) {
                 f.render();
@@ -77,9 +115,13 @@ Painter.prototype = {
                         f.showGrid = false;
                         f.render();
                     } else {
-                        $(this).addClass('checked');
-                        f.showGrid = true;
-                        f.render();
+                        if (f.toolMode != 'select') {
+                            $(this).addClass('checked');
+                            f.showGrid = true;
+                            f.render();
+                        } else {
+                            alert('选区模式下，不支持网格视图');
+                        }
                     }
                     break;
                 case 1:
