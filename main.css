@@ -349,6 +349,7 @@ h6 {
 
 #cube_group {
     display: inline-block;
+    border:1px dashed #aaa;
 }
 .cube-row {
     font-size: 0px;
