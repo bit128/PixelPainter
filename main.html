@@ -17,7 +17,7 @@
             <li>
                 <a href="javascript:;">文件</a>
                 <ul>
-                    <li><a href="javascript:;">新建</a></li>
+                    <li><a href="javascript:;" data-val="new_file">新建</a></li>
                     <li class="line"><a href="javascript:;">打开</a></li>
                     <li><a href="javascript:;">保存</a></li>
                     <li class="line"><a href="javascript:;">导出</a></li>
@@ -61,7 +61,7 @@
         <div class="canvas">
             <div class="container">
                 <div id="cube_group"></div>
-                <label>w:32 h:32 scale:1</label>
+                <label></label>
                 <a href="javascript:;" title="网格" style="left:20px;top:40px;"><img src="images/ic-net.png" /></a>
                 <a href="javascript:;" title="放大" style="left:20px;top:112px;"><img src="images/ic-z-out.png" /></a>
                 <a href="javascript:;" title="缩小" style="left:20px;top:158px;"><img src="images/ic-z-in.png" /></a>
@@ -157,14 +157,14 @@
                 <form class="modal-form">
                     <div class="pure-g">
                         <div class="pure-u-1-4"><label>文件名称：</label></div>
-                        <div class="pure-u-1-2"><input type="input" class="modal-input" /></div>
+                        <div class="pure-u-1-2"><input type="input" class="modal-input" value="未命名文件" id="file_name" /></div>
                         <div class="pure-u-1-4"></div>
                     </div>
                     <div class="pure-g">
                         <div class="pure-u-1-4"><label>画布尺寸：</label></div>
                         <div class="pure-u-1-2">
-                            <input type="input" class="modal-input text-center" style="width:50px;" value="32" /> x
-                            <input type="input" class="modal-input text-center" style="width:50px;" value="32" />
+                            <input type="input" class="modal-input text-center" style="width:50px;" value="32" id="file_width" /> x
+                            <input type="input" class="modal-input text-center" style="width:50px;" value="32" id="file_height" />
                         </div>
                         <div class="pure-u-1-4"></div>
                     </div>
@@ -180,15 +180,15 @@
                     <div class="pure-g">
                         <div class="pure-u-1-4"><label>背景颜色：</label></div>
                         <div class="pure-u-1-2">
-                            <input type="input" class="modal-input text-center" style="width:68px;" value="#FFFFFF" />
+                            <input type="input" class="modal-input text-center" style="width:68px;" value="FFFFFF" id="file_color" />
                         </div>
                         <div class="pure-u-1-4"></div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="pure-button btn-info">确定</button>
-                <button type="button" class="pure-button">取消</button>
+                <button type="button" class="pure-button btn-info" id="create_new_file">确定</button>
+                <button type="button" class="pure-button close-modal">取消</button>
             </div>
         </div>
     </div>
@@ -202,6 +202,7 @@ $(document).ready(function(){
     const painter = new Painter($('#cube_group'));
     /*颜色面板*/
     painter.colorManager = new ColorPanel($('#color_maker'), $('#color_picker'));
+    painter.colorManager.setColor('#fa6800');
     /*图层面板*/
     const layerPanel = new LayerPanel($('#layer'));
     layerPanel.refreshCallback = function(){
@@ -209,12 +210,52 @@ $(document).ready(function(){
     };
     painter.layerManager = layerPanel;
 
+    /*菜单栏事件*/
+    $('.menu').on('click', 'a', function(){
+        switch($(this).attr('data-val')) {
+            case 'new_file':
+                $('#new_file_modal').fadeIn();
+                break;
+        }
+    });
+    $('.close-modal').on('click', function(){
+        $(this).parents('.modal').fadeOut();
+    });
+    $('#create_new_file').on('click', function(){
+        let name = $('#file_name').val();
+        if (name == '') {
+            alert('请填写文件名称');
+            $('#file_name').focus();
+            return;
+        }
+        let width = $('#file_width').val();
+        if (!/^[0-9]+$/.test(width) || width < 1 || width > 128) {
+            alert('宽度范围2-128');
+            $('#file_width').focus();
+            return;
+        }
+        let height = $('#file_height').val();
+        if (!/^[0-9]+$/.test(height) || height < 1 || height > 128) {
+            alert('高度范围2-128');
+            $('#file_height').focus();
+            return;
+        }
+        let color = $('#file_color').val();
+        if (!/^[A-Fa-f0-9]{6}$/.test(color)) {
+            alert('颜色样式为16进制：FFFFFF');
+            $('#file_color').focus();
+            return;
+        }
+        painter.newFile(name, width, height, '#'+color);
+        $(this).parents('.modal').hide();
+    });
+    /*
     painter.colorManager.setColor('#fa6800');
-    painter.newFile('未命名', 32, 32, '#ffffff');
-    painter.scale = 2;
+    painter.newFile('未命名', 128, 128, '#ffffff');
+    painter.scale = 0;
     //painter.showGrid = false;
     painter.setTool('pen');
-    painter.render();
+    painter.render();*/
 });
 </script>
 </html>

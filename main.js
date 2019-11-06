@@ -4,7 +4,7 @@ var Painter = function(handler) {
     this.x = 0;
     this.y = 0;
     this.showGrid = false;
-    this.scale = 1;
+    this.scale = 3;
     this.data = null;
     this.colorManager = null;
     this.layerManager = null;
@@ -17,10 +17,12 @@ Painter.prototype = {
     init: function() {
         let f = this;
         $('.tools').on('click', function(e){
-            f.toolMode = $(this).attr('data-val');
-            $('.tools').removeClass('checked');
-            $(this).addClass('checked');
-            e.stopPropagation();
+            if (f.data != null) {
+                f.toolMode = $(this).attr('data-val');
+                $('.tools').removeClass('checked');
+                $(this).addClass('checked');
+                e.stopPropagation();
+            }
         });
         let mouseDown = false;
         let areaPosX = 0;
@@ -82,7 +84,6 @@ Painter.prototype = {
                     }
                     i++;
                 });
-                console.log(f.selectArea);
                 area.remove();
             }
             if (['move','select','pick','magic','cut','insert'].indexOf(f.toolMode) == -1) {
@@ -111,29 +112,31 @@ Painter.prototype = {
     windowEvent: function() {
         let f = this;
         $('.canvas').on('click', 'a', function() {
-            switch ($('.canvas').find('a').index($(this))) {
-                case 0:
-                    if ($(this).hasClass('checked')) {
-                        $(this).removeClass('checked');
-                        f.showGrid = false;
-                        f.render();
-                    } else {
-                        $(this).addClass('checked');
-                        f.showGrid = true;
-                        f.render();
-                    }
-                    break;
-                case 1:
-                    if (f.scale < 5) {
-                        f.scale++;
-                        f.render();
-                    }
-                    break;
-                case 2:
-                    if (f.scale > 0) {
-                        f.scale--;
-                        f.render();
-                    }
+            if (f.data != null) {
+                switch ($('.canvas').find('a').index($(this))) {
+                    case 0:
+                        if ($(this).hasClass('checked')) {
+                            $(this).removeClass('checked');
+                            f.showGrid = false;
+                            f.render();
+                        } else {
+                            $(this).addClass('checked');
+                            f.showGrid = true;
+                            f.render();
+                        }
+                        break;
+                    case 1:
+                        if (f.scale < 3) {
+                            f.scale++;
+                            f.render();
+                        }
+                        break;
+                    case 2:
+                        if (f.scale > 0) {
+                            f.scale--;
+                            f.render();
+                        }
+                }
             }
         });
     },
@@ -199,7 +202,7 @@ Painter.prototype = {
                 break;
             case 'fill':
                 let colorArr = JSON.parse(JSON.stringify(this.colorManager.color));
-                if (this.selectArea.length > 0) {
+                if (this.selectArea != undefined && this.selectArea.length > 0) {
                     this.layerManager.paintCubes(this.selectArea, colorArr);
                 } else {
                     this.makeColorArea(index, cube.attr('style'));
@@ -216,8 +219,8 @@ Painter.prototype = {
             this.data = {
                 fileName: fileName,
                 cuteType: 1,
-                width: width,
-                height: height,
+                width: width - 0,
+                height: height - 0,
                 bgColor: bgColor,
                 layers: []
             };
@@ -225,8 +228,18 @@ Painter.prototype = {
                 bgColor = ColorPanel.prototype.hexToDigit(bgColor);
             }
             let matrix = width * height;
+            this.layerManager.layers = [];
             this.layerManager.newLayer(matrix, bgColor, '背景层');
             this.layerManager.newLayer(matrix, 0, '绘图层');
+            if (width > 80) {
+                this.scale = 0;
+            } else if (width > 40) {
+                this.scale = 1;
+            } else if (width > 20) {
+                this.scale = 2;
+            } 
+            this.render();
+            this.setTool('pen');
         } else {
             alert('请先保存您的文件');
         }

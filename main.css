@@ -82,10 +82,10 @@ h6 {
 .modal-input {
     width: 100%;
     border: none;
-    border-bottom: 1px solid #aaa;
+    border-bottom: 1px solid #003050;
 }
 .modal-input:focus {
-    border-bottom: 1px solid #fa6800;
+    border-bottom: 1px solid #00a9ff;
 }
 .modal-form div:first-child label {
     font-size: 12px;
@@ -362,10 +362,19 @@ h6 {
     border: 1px solid #00a9ff;
     box-sizing: border-box;
 }
+
+@keyframes select {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
 .cube.checked {
+    animation: select 0.3s linear infinite;
     border: 1px dotted #31baff;
     box-sizing: border-box;
 }
+
 .cube-row.grid {
     margin-bottom: 1px;
 }
@@ -394,25 +403,11 @@ h6 {
     height: 15px;
 }
 .cube-3 {
-    width: 20px;
-    height: 20px;
-}
-.cube-row-3 {
-    height: 20px;
-}
-.cube-4 {
     width: 30px;
     height: 30px;
 }
-.cube-row-4 {
+.cube-row-3 {
     height: 30px;
-}
-.cube-5 {
-    width: 40px;
-    height: 40px;
-}
-.cube-row-5 {
-    height: 40px;
 }
 
 .area {
