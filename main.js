@@ -206,7 +206,7 @@ Painter.prototype = {
             }
         }
         if (this.y < this.data.height - 1) {
-            let i = index + this.data.height;
+            let i = index + this.data.width;
             if (this.colorArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
                 this.colorArea.push(i);
                 this.searchColorArea(i, color);
@@ -246,8 +246,8 @@ Painter.prototype = {
             this.data = {
                 fileName: fileName,
                 cuteType: 1,
-                width: width - 0,
-                height: height - 0,
+                width: parseInt(width),
+                height: parseInt(height),
                 bgColor: bgColor,
                 layers: []
             };
