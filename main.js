@@ -189,6 +189,9 @@ Painter.prototype = {
                 cube.removeAttr('style');
                 this.layerManager.paintCube(index, 0);
                 break;
+            case 'move':
+                console.log('----> 移动中');
+                break;
             case 'magic':
                 this.makeColorArea(index, cube.attr('style'));
                 this.handler.find('.cube').removeClass('checked');
@@ -270,8 +273,6 @@ Painter.prototype = {
             $('.canvas').width(cavansWdith);
             $('.canvas label').html('width: '+this.data.width+'&nbsp; height: '+this.data.height
                 +'&nbsp; scale: '+this.scale+'&nbsp;&nbsp;&nbsp;&nbsp;<span></span>');
-        } else {
-            console.error('画布数据缺失');
         }
     }
 };
