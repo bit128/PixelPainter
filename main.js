@@ -1,6 +1,7 @@
 var Painter = function(handler) {
     this.handler = handler;
     this.hasChange = false;
+    this.clickDownIndex = -1;
     this.x = 0;
     this.y = 0;
     this.showGrid = false;
@@ -16,14 +17,6 @@ Painter.prototype = {
     constructor: Painter,
     init: function() {
         let f = this;
-        $('.tools').on('click', function(e){
-            if (f.data != null) {
-                f.toolMode = $(this).attr('data-val');
-                $('.tools').removeClass('checked');
-                $(this).addClass('checked');
-                e.stopPropagation();
-            }
-        });
         let mouseDown = false;
         let areaPosX = 0;
         let areaPosY = 0;
@@ -85,14 +78,47 @@ Painter.prototype = {
                     i++;
                 });
                 area.remove();
+            } else if (f.toolMode == 'move') {
+                f.layerManager.moveCubes(f.selectArea, f.moveArea);
             }
-            if (['move','select','pick','magic','cut','insert'].indexOf(f.toolMode) == -1) {
+            if (['select','pick','magic','cut'].indexOf(f.toolMode) == -1) {
+                f.selectArea = [];
+                f.colorArea = [];
+                f.moveArea = [];
                 f.render();
             }
         });
         this.handler.on('mousedown', '.cube', function(){
             let index = f.handler.find('.cube').index($(this));
-            f.paint(index, $(this));
+            switch (f.toolMode) {
+                case 'magic':
+                    f.makeColorArea(index, $(this).attr('style'));
+                    f.handler.find('.cube').removeClass('checked');
+                    for (let i of f.colorArea) {
+                        f.handler.find('.cube').eq(i).addClass('checked');
+                    }
+                    break;
+                case 'move':
+                    f.clickDownIndex = index;
+                    if (f.selectArea == undefined || f.selectArea.length == 0) {
+                        if (f.layerManager.layers[f.layerManager.currentLayer].cubes[index] != 0) {
+                            f.makeColorArea(index, $(this).attr('style'));
+                            f.selectArea = f.colorArea;
+                        }
+                    }
+                    break;
+                case 'fill':
+                    let colorArr = JSON.parse(JSON.stringify(f.colorManager.color));
+                    if (f.selectArea != undefined && f.selectArea.length > 0) {
+                        f.layerManager.paintCubes(f.selectArea, colorArr);
+                    } else {
+                        f.makeColorArea(index, $(this).attr('style'));
+                        f.layerManager.paintCubes(f.colorArea, colorArr);
+                    }
+                    break;
+                default:
+                    f.paint(index, $(this));
+            }
         });
         this.handler.on('mouseover', '.cube', function(){
             let index = f.handler.find('.cube').index($(this));
@@ -111,6 +137,14 @@ Painter.prototype = {
     },
     windowEvent: function() {
         let f = this;
+        $('.tools').on('click', function(e){
+            if (f.data != null) {
+                f.toolMode = $(this).attr('data-val');
+                $('.tools').removeClass('checked');
+                $(this).addClass('checked');
+                e.stopPropagation();
+            }
+        });
         $('.canvas').on('click', 'a', function() {
             if (f.data != null) {
                 switch ($('.canvas').find('a').index($(this))) {
@@ -190,31 +224,21 @@ Painter.prototype = {
                 this.layerManager.paintCube(index, 0);
                 break;
             case 'move':
-                console.log('----> 移动中');
-                break;
-            case 'magic':
-                this.makeColorArea(index, cube.attr('style'));
-                this.handler.find('.cube').removeClass('checked');
-                for (let i of this.colorArea) {
-                    this.handler.find('.cube').eq(i).addClass('checked');
+                if (this.selectArea && this.selectArea.length > 0) {
+                    let mc = index - this.clickDownIndex;
+                    this.moveArea = [];
+                    this.handler.find('.cube').removeClass('checked');
+                    for (let i of this.selectArea) {
+                        
+                        this.handler.find('.cube').eq(i+mc).addClass('checked');
+                        this.moveArea.push(i+mc);
+                    }
                 }
                 break;
             case 'pick':
                 let color = cube.attr('style').replace('background:rgb(', '[').replace(')',']');
                 this.colorManager.setColor(JSON.parse(color));
                 break;
-            case 'fill':
-                let colorArr = JSON.parse(JSON.stringify(this.colorManager.color));
-                if (this.selectArea != undefined && this.selectArea.length > 0) {
-                    this.layerManager.paintCubes(this.selectArea, colorArr);
-                } else {
-                    this.makeColorArea(index, cube.attr('style'));
-                    this.layerManager.paintCubes(this.colorArea, colorArr);
-                }
-                break;
-        }
-        if (this.selectArea) {
-            this.selectArea = [];
         }
     },
     newFile: function(fileName, width, height, bgColor){
@@ -478,6 +502,19 @@ LayerPanel.prototype = {
     paintCubes: function(indexs, color) {
         for (let i of indexs) {
             this.layers[this.currentLayer].cubes[i] = color;
+        }
+    },
+    moveCubes: function(from, to) {
+        for (let i in to) {
+            if (to[i] < this.matrix) {
+                let color = this.layers[this.currentLayer].cubes[from[i]];
+                if (color != 0) {
+                    this.layers[this.currentLayer].cubes[to[i]] = color;
+                }
+            }
+            if (to.indexOf(from[i]) == -1) {
+                this.layers[this.currentLayer].cubes[from[i]] = 0;
+            }
         }
     },
     newLayer: function(length, bgColor, name) {
