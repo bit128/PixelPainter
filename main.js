@@ -504,7 +504,15 @@ LayerPanel.prototype = {
             this.layers[this.currentLayer].cubes[i] = color;
         }
     },
-    moveCubes: function(from, to) {
+    moveCubes: function(fromArea, toArea) {
+        let from = [];
+        let to = [];
+        for (let j in fromArea) {
+            if (this.layers[this.currentLayer].cubes[fromArea[j]] != 0) {
+                from.push(fromArea[j]);
+                to.push(toArea[j]);
+            }
+        }
         for (let i in to) {
             if (to[i] < this.matrix) {
                 let color = this.layers[this.currentLayer].cubes[from[i]];
