@@ -7,6 +7,7 @@ var Painter = function(handler) {
     this.showGrid = false;
     this.scale = 3;
     this.data = null;
+    this.selectArea = [];
     this.colorManager = null;
     this.layerManager = null;
     this.toolMode = '';
@@ -22,7 +23,7 @@ Painter.prototype = {
         let areaPosY = 0;
         $('.canvas').on('mousedown', function(e){
             mouseDown = true;
-            if (f.toolMode == 'select') {
+            if (f.toolMode == 'select' || f.toolMode == 'cut') {
                 areaPosX = e.clientX + 1;
                 areaPosY = e.clientY + 1;
                 let pos = 'left:'+areaPosX+'px;top:'+areaPosY+'px;width:1px;height:1px;';
@@ -32,7 +33,7 @@ Painter.prototype = {
             }
         });
         $('.canvas').on('mousemove', function(e){
-            if (mouseDown && f.toolMode == 'select') {
+            if (mouseDown && (f.toolMode == 'select' || f.toolMode == 'cut')) {
                 let pos = 'left:'+(areaPosX>e.clientX?areaPosX-(areaPosX-e.clientX):areaPosX)
                     +'px;top:'+(areaPosY>e.clientY?areaPosY-(areaPosY-e.clientY):areaPosY)
                     +'px;width:'+Math.abs(e.clientX-areaPosX)+'px;height:'+Math.abs(e.clientY-areaPosY)+'px;';
@@ -41,7 +42,11 @@ Painter.prototype = {
         });
         $('.canvas').on('mouseup', function(){
             mouseDown = false;
-            if (f.toolMode == 'select') {
+            if (f.toolMode == 'select' || f.toolMode == 'cut') {
+                let isReverse = false;
+                if (f.toolMode == 'cut') {
+                    isReverse = true;
+                }
                 let area = $(this).find('.area');
                 let al = area.offset().left;
                 let at = area.offset().top;
@@ -49,26 +54,26 @@ Painter.prototype = {
                 let ah = area.height();
                 let i = 0;
                 f.handler.find('.cube').each(function(){
-                    let isMeet = false;
+                    let isMeet = isReverse;
                     let cl = $(this).offset().left;
                     let ct = $(this).offset().top;
                     let cw = $(this).width();
                     let ch = $(this).height();
                     if (at < ct && at+ah > ct) {
                         if (al < cl && al+aw > cl) {
-                            isMeet = true;
+                            isMeet = !isReverse;
                         } else if (al > cl && al+aw < cl+cw) {
-                            isMeet = true;
+                            isMeet = !isReverse;
                         } else if (al < cl+cw && al+aw > cl+cw) {
-                            isMeet = true;
+                            isMeet = !isReverse;
                         }
                     } else if (at > ct && at < ct+ch) {
                         if (al < cl && al+aw > cl) {
-                            isMeet = true;
+                            isMeet = !isReverse;
                         } else if (al > cl && al+aw < cl+cw) {
-                            isMeet = true;
+                            isMeet = !isReverse;
                         } else if (al < cl+cw && al+aw > cl+cw) {
-                            isMeet = true;
+                            isMeet = !isReverse;
                         }
                     }
                     if (isMeet) {
@@ -83,7 +88,6 @@ Painter.prototype = {
             }
             if (['select','pick','magic','cut'].indexOf(f.toolMode) == -1) {
                 f.selectArea = [];
-                f.colorArea = [];
                 f.moveArea = [];
                 f.render();
             }
@@ -94,27 +98,24 @@ Painter.prototype = {
                 case 'magic':
                     f.makeColorArea(index, $(this).attr('style'));
                     f.handler.find('.cube').removeClass('checked');
-                    for (let i of f.colorArea) {
+                    for (let i of f.selectArea) {
                         f.handler.find('.cube').eq(i).addClass('checked');
                     }
                     break;
                 case 'move':
                     f.clickDownIndex = index;
-                    if (f.selectArea == undefined || f.selectArea.length == 0) {
+                    if (f.selectArea.length == 0) {
                         if (f.layerManager.layers[f.layerManager.currentLayer].cubes[index] != 0) {
                             f.makeColorArea(index, $(this).attr('style'));
-                            f.selectArea = f.colorArea;
                         }
                     }
                     break;
                 case 'fill':
                     let colorArr = JSON.parse(JSON.stringify(f.colorManager.color));
-                    if (f.selectArea != undefined && f.selectArea.length > 0) {
-                        f.layerManager.paintCubes(f.selectArea, colorArr);
-                    } else {
+                    if (f.selectArea.length == 0) {
                         f.makeColorArea(index, $(this).attr('style'));
-                        f.layerManager.paintCubes(f.colorArea, colorArr);
                     }
+                    f.layerManager.paintCubes(f.selectArea, colorArr);
                     break;
                 default:
                     f.paint(index, $(this));
@@ -174,41 +175,36 @@ Painter.prototype = {
             }
         });
     },
-    setTool: function(tool) {
-        $('.tools').removeClass('checked');
-        $('.tools[data-val="'+tool+'"]').addClass('checked');
-        this.toolMode = tool;
-    },
     makeColorArea: function(index, color) {
-        this.colorArea = [index];
+        this.selectArea = [index];
         this.searchColorArea(index, color);
     },
     searchColorArea(index, color) {
         if (this.x > 0) {
             let i = index - 1;
-            if (this.colorArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
-                this.colorArea.push(i);
+            if (this.selectArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
+                this.selectArea.push(i);
                 this.searchColorArea(i, color);
             }
         }
         if (this.y > 0) {
             let i = index - this.data.width;
-            if (this.colorArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
-                this.colorArea.push(i);
+            if (this.selectArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
+                this.selectArea.push(i);
                 this.searchColorArea(i, color);
             }
         }
         if (this.x < this.data.width - 1) {
             let i = index + 1;
-            if (this.colorArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
-                this.colorArea.push(i);
+            if (this.selectArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
+                this.selectArea.push(i);
                 this.searchColorArea(i, color);
             }
         }
         if (this.y < this.data.height - 1) {
             let i = index + this.data.width;
-            if (this.colorArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
-                this.colorArea.push(i);
+            if (this.selectArea.indexOf(i) == -1 && color == this.handler.find('.cube').eq(i).attr('style')) {
+                this.selectArea.push(i);
                 this.searchColorArea(i, color);
             }
         }
@@ -224,7 +220,7 @@ Painter.prototype = {
                 this.layerManager.paintCube(index, 0);
                 break;
             case 'move':
-                if (this.selectArea && this.selectArea.length > 0) {
+                if (this.selectArea.length > 0) {
                     let mc = index - this.clickDownIndex;
                     this.moveArea = [];
                     this.handler.find('.cube').removeClass('checked');
@@ -270,6 +266,11 @@ Painter.prototype = {
         } else {
             alert('请先保存您的文件');
         }
+    },
+    setTool: function(tool) {
+        $('.tools').removeClass('checked');
+        $('.tools[data-val="'+tool+'"]').addClass('checked');
+        this.toolMode = tool;
     },
     render: function(){
         let layer = this.layerManager.getMergeLayer();
